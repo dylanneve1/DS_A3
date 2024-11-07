@@ -1,7 +1,9 @@
 #ifndef BST_H_
 #define BST_H_
 typedef struct Tree_Node{
-    //TODO
+    char data;
+    struct Tree_Node *left;
+    struct Tree_Node *right;
 } Tree_Node;
 
 
