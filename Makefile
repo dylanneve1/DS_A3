@@ -12,7 +12,7 @@ CFLAGS = -g -Wall
 ######################
 
 # Both targets with one command
-all: task1 task2
+all: task1 task2 bst_test
 
 # Target for task1
 task1: task1.o bst.o
@@ -23,6 +23,11 @@ task1: task1.o bst.o
 task2: task2.o bstdb.o database.o listdb.o profiler.o
 	@echo "Linking t2_test..."
 	$(CC) $(CFLAGS) -o task2 task2.o bstdb.o database.o listdb.o profiler.o
+
+# Target for task1
+bst_test: bst_test.o bst.o
+	@echo "Linking bst_test..."
+	$(CC) $(CFLAGS) -o bst_test bst_test.o bst.o
 
 ######################
 #    BUILD RULES     #
@@ -37,6 +42,11 @@ task1.o: ./src/task1.c ./src/bst.h
 bst.o: ./src/bst.c ./src/bst.h
 	@echo "Compiling bst.c..."
 	$(CC) $(CFLAGS) -c ./src/bst.c
+
+# Compile bst object
+bst_test.o: ./src/bst_test.c ./src/bst.h
+	@echo "Compiling bst_test.c..."
+	$(CC) $(CFLAGS) -c ./src/bst_test.c
 
 # Compile task2 object
 task2.o: ./src/task2.c ./src/db/database.h ./src/db/profiler.h
@@ -70,7 +80,7 @@ profiler.o: ./src/db/profiler.c ./src/db/profiler.h ./src/db/database.h
 # Clean up all object files and executables
 clean:
 	@echo "Cleaning up..."
-	rm -f *.o task1 task2
+	rm -f *.o task1 task2 bst_test
 
 ######################
 #    PHONY TARGETS   #
