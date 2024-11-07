@@ -152,13 +152,12 @@ get_time ( void ) {
     t.tv_sec = mts.tv_sec;
     t.tv_nsec = mts.tv_nsec;
 #else
-    static double prev_value = 0.0;
-
     // CLOCK_MONOTONIC represents the absolute elapsed wall-clock time since 
     // some arbitrary, fixed point in the past. It isn't affected by changes in 
     // the system time-of-day clock.
     int r = clock_gettime( CLOCK_MONOTONIC, &t );    
 #endif    
+    static double prev_value = 0.0; 
     if ( r < 0 ) {
         // gettime can fail, so we need to do a check and possibly print error
         fprintf(stderr, "%s\n", strerror(errno)); 
