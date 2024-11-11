@@ -53,7 +53,7 @@ TNode *root;
 
 int IDtable[MAX_DOCS] = { 0 };
 
-int bst_num_comps, bst_num_searches;
+int bst_num_traverses, bst_num_searches, num_duplicates;
 
 void
 free_TNode (TNode *node) {
@@ -65,6 +65,7 @@ free_TNode (TNode *node) {
     free_TNode(node->right);
     free(node->name);
     free(node->author);
+    IDtable[node->doc_id] = 0;
     free(node);
 }
 
@@ -74,8 +75,9 @@ bstdb_init ( void ) {
 	// starts. Use it to allocate any memory you want to use or initialize 
 	// some globals if you need to. Function should return 1 if initialization
 	// was successful and 0 if something went wrong.
-	bst_num_comps = 0;
+	bst_num_traverses = 0;
 	bst_num_searches = 0;
+	num_duplicates = 0;
 	root = NULL;
 	return 1;
 }
@@ -111,10 +113,14 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	// Find the insertion point
 	while (current != NULL) {
 		parent = current;
-		if (current->doc_id >= doc_id) {
+		if (current->doc_id > doc_id) {
 			current = current->left;
-		} else {
+		} else if (current->doc_id < doc_id) {
 			current = current->right;
+		} else if (current->doc_id == doc_id) {
+			// Duplicate found, not good!
+			num_duplicates++;
+			return -1;
 		}
 	}
 
@@ -176,11 +182,12 @@ bstdb_get_word_count ( int doc_id ) {
 	bst_num_searches++; // Increment searches
 	TNode *current = root;
 	while (current != NULL) {
-		bst_num_comps++;
 		if (current->doc_id > doc_id) {
 			current = current->left;
+			bst_num_traverses++;
 		} else if (current->doc_id < doc_id) {
 			current = current->right;
+			bst_num_traverses++;
 		} else {
 			return current->word_count;
 		}
@@ -197,11 +204,12 @@ bstdb_get_name ( int doc_id ) {
 	bst_num_searches++; // Increment searches
 	TNode *current = root;
 	while (current != NULL) {
-		bst_num_comps++;
 		if (current->doc_id > doc_id) {
 			current = current->left;
+			bst_num_traverses++;
 		} else if (current->doc_id < doc_id) {
 			current = current->right;
+			bst_num_traverses++;
 		} else {
 			return current->name;
 		}
@@ -230,8 +238,9 @@ bstdb_stat ( void ) {
 	//  + Can you prove that there are no accidental duplicate document IDs
 	//    in the tree?
 	printf("STAT\n");
-    printf("Avg comparisons per search  -> %lf\n",
-        (double)bst_num_comps/bst_num_searches);
+    printf("Avg traversals per search  -> %lf\n",
+        (double)bst_num_traverses/bst_num_searches);
+    printf("Num duplicate doc_id detected  -> %d\n", num_duplicates);
 }
 
 void
