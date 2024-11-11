@@ -8,9 +8,11 @@
 int main() {
     // Data
     char data[] = "FLOCCINAUCINIHILIPILIFICATION";
+    printf("Unsorted String: %s\n", data);
     // Create BST
     Tree_Node *root = create_bst(data);
     // Print nodes
+    printf("Sorted String: ");
     tree_print_sorted(root);
     // Newline
     printf("\n");
