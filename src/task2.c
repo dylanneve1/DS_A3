@@ -84,8 +84,8 @@ main ( int argc, char *argv[] ) {
 
     int nb_books;
     if( argc < 2 ) { 
-		nb_books =0;
-	} else{
+        nb_books =0;
+    } else{
         nb_books = atoi(argv[1]);
     }
 

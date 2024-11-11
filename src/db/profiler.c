@@ -134,13 +134,13 @@ static size_t       g_collection_size = 0; // Number of books created
 double 
 get_time ( void ) {
 #ifdef _WIN32     
-	LARGE_INTEGER time;
-	LARGE_INTEGER frequency;
+    LARGE_INTEGER time;
+    LARGE_INTEGER frequency;
 
-	QueryPerformanceFrequency(&frequency);
-	QueryPerformanceCounter(&time);
-		
-	return ((double)time.QuadPart) / frequency.QuadPart;	
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&time);
+        
+    return ((double)time.QuadPart) / frequency.QuadPart;    
 #else
     struct timespec t;
 #if __MACH__   
