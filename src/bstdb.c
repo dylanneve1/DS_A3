@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-//#define DEBUG
+#define MAX_DOCS 1000000
 
 // Write your submission in this file
 //
@@ -51,10 +51,13 @@ typedef struct TNode {
 
 TNode *root;
 
-int current_doc_id = 0;
+int IDtable[MAX_DOCS] = { 0 };
+
+int bst_num_comps, bst_num_searches;
 
 void
 free_TNode (TNode *node) {
+	// This function frees all TNode and strings inside recursively
     if (node == NULL) {
     	return;
     }
@@ -65,22 +68,14 @@ free_TNode (TNode *node) {
     free(node);
 }
 
-unsigned int
-hash(char *s) {
-    int hash = 0;
-    while (*s) {
-        hash = hash * 31 + *s;
-        s++;
-    }
-    return hash;
-}
-
 int
 bstdb_init ( void ) {
 	// This function will run once (and only once) when the database first
 	// starts. Use it to allocate any memory you want to use or initialize 
 	// some globals if you need to. Function should return 1 if initialization
 	// was successful and 0 if something went wrong.
+	bst_num_comps = 0;
+	bst_num_searches = 0;
 	root = NULL;
 	return 1;
 }
@@ -102,8 +97,14 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	// If something goes wrong and the data cannot be stored, this function
 	// should return -1. Otherwise it should return the ID of the new node
 	// Keep track of current and parent
-	int doc_id = (int)hash(name) + current_doc_id;
 
+	int doc_id = 0;
+	while (IDtable[doc_id] == 1) {
+		doc_id = rand() % MAX_DOCS;
+	}
+	IDtable[doc_id] = 1;
+
+	// Current and parent pointers
 	TNode *current = root;
 	TNode *parent = NULL;
 
@@ -163,17 +164,6 @@ bstdb_add ( char *name, int word_count, char *author ) {
     	parent->right = addition;
     }
 
-#ifdef DEBUG
-    printf("Node Info:\n");
-    printf("  Key: %d\n", addition->doc_id);
-    printf("  Name: %s\n", addition->name);
-    printf("  Author: %s\n", addition->author);
-    printf("  Word Count: %d\n", addition->word_count);
-    printf("  Left Child: %s\n", addition->left ? "Exists" : "NULL");
-    printf("  Right Child: %s\n", addition->right ? "Exists" : "NULL");
-#endif
-    current_doc_id++;
-
 	return doc_id;
 }
 
@@ -183,8 +173,10 @@ bstdb_get_word_count ( int doc_id ) {
 	// and return the word_count of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return -1
+	bst_num_searches++; // Increment searches
 	TNode *current = root;
 	while (current != NULL) {
+		bst_num_comps++;
 		if (current->doc_id > doc_id) {
 			current = current->left;
 		} else if (current->doc_id < doc_id) {
@@ -202,8 +194,10 @@ bstdb_get_name ( int doc_id ) {
 	// and return the name of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return NULL or 0
+	bst_num_searches++; // Increment searches
 	TNode *current = root;
 	while (current != NULL) {
+		bst_num_comps++;
 		if (current->doc_id > doc_id) {
 			current = current->left;
 		} else if (current->doc_id < doc_id) {
@@ -212,7 +206,7 @@ bstdb_get_name ( int doc_id ) {
 			return current->name;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 void
@@ -235,6 +229,9 @@ bstdb_stat ( void ) {
 	//
 	//  + Can you prove that there are no accidental duplicate document IDs
 	//    in the tree?
+	printf("STAT\n");
+    printf("Avg comparisons per search  -> %lf\n",
+        (double)bst_num_comps/bst_num_searches);
 }
 
 void
