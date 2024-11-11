@@ -4,6 +4,8 @@
 #include <string.h>
 
 #define MAX_DOCS 1000000
+#define LEFT_DIR 101
+#define RIGHT_DIR 102
 
 // Write your submission in this file
 //
@@ -53,7 +55,11 @@ TNode *root;
 
 int IDtable[MAX_DOCS] = { 0 };
 
-int bst_num_traverses, bst_num_searches, num_duplicates;
+int bst_num_traverses, bst_num_searches, num_duplicates, leftHeight, rightHeight;
+
+void getBalance() {
+	
+}
 
 void
 free_TNode (TNode *node) {
@@ -78,6 +84,8 @@ bstdb_init ( void ) {
 	bst_num_traverses = 0;
 	bst_num_searches = 0;
 	num_duplicates = 0;
+	leftHeight = 0;
+	rightHeight = 0;
 	root = NULL;
 	return 1;
 }
@@ -100,7 +108,10 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	// should return -1. Otherwise it should return the ID of the new node
 	// Keep track of current and parent
 
-	int doc_id = 0;
+	int depth = 0;
+	int sway = 0;
+
+	int doc_id = rand() % MAX_DOCS;
 	while (IDtable[doc_id] == 1) {
 		doc_id = rand() % MAX_DOCS;
 	}
@@ -115,8 +126,16 @@ bstdb_add ( char *name, int word_count, char *author ) {
 		parent = current;
 		if (current->doc_id > doc_id) {
 			current = current->left;
+			depth++;
+			if (sway == 0) {
+				sway = LEFT_DIR;
+			}
 		} else if (current->doc_id < doc_id) {
 			current = current->right;
+			depth++;
+			if (sway == 0) {
+				sway = RIGHT_DIR;
+			}
 		} else if (current->doc_id == doc_id) {
 			// Duplicate found, not good!
 			num_duplicates++;
@@ -168,6 +187,12 @@ bstdb_add ( char *name, int word_count, char *author ) {
     	parent->left = addition;
     } else {
     	parent->right = addition;
+    }
+
+    if (sway == LEFT_DIR && depth > leftHeight) {
+    	leftHeight = depth;
+    } else if (sway == RIGHT_DIR && depth > rightHeight) {
+    	rightHeight = depth;
     }
 
 	return doc_id;
@@ -241,6 +266,13 @@ bstdb_stat ( void ) {
     printf("Avg traversals per search  -> %lf\n",
         (double)bst_num_traverses/bst_num_searches);
     printf("Num duplicate doc_id detected  -> %d\n", num_duplicates);
+    if (leftHeight == rightHeight) {
+    	printf("Balanced  -> TRUE \n");
+    } else {
+    	printf("Balanced  -> FALSE \n");
+    }
+    printf("Height on Left  -> %d\n", leftHeight);
+    printf("Height on Right  -> %d\n", rightHeight);
 }
 
 void
