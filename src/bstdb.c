@@ -1,4 +1,9 @@
 #include "bstdb.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+//#define DEBUG
 
 // Write your submission in this file
 //
@@ -35,6 +40,40 @@
 // need more functionality than what is provided by these 6 functions, you
 // may write additional functions in this file.
 
+typedef struct TNode {
+	int doc_id;
+    char *name;
+    char *author;
+    int word_count;
+    struct TNode *left;
+    struct TNode *right;
+} TNode ;
+
+TNode *root;
+
+int current_doc_id = 0;
+
+void
+free_TNode (TNode *node) {
+    if (node == NULL) {
+    	return;
+    }
+    free_TNode(node->left);
+    free_TNode(node->right);
+    free(node->name);
+    free(node->author);
+    free(node);
+}
+
+unsigned int
+hash(char *s) {
+    int hash = 0;
+    while (*s) {
+        hash = hash * 31 + *s;
+        s++;
+    }
+    return hash;
+}
 
 int
 bstdb_init ( void ) {
@@ -42,6 +81,7 @@ bstdb_init ( void ) {
 	// starts. Use it to allocate any memory you want to use or initialize 
 	// some globals if you need to. Function should return 1 if initialization
 	// was successful and 0 if something went wrong.
+	root = NULL;
 	return 1;
 }
 
@@ -61,7 +101,80 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	//
 	// If something goes wrong and the data cannot be stored, this function
 	// should return -1. Otherwise it should return the ID of the new node
-	return -1;
+	// Keep track of current and parent
+	int doc_id = (int)hash(name) + current_doc_id;
+
+	TNode *current = root;
+	TNode *parent = NULL;
+
+	// Find the insertion point
+	while (current != NULL) {
+		parent = current;
+		if (current->doc_id >= doc_id) {
+			current = current->left;
+		} else {
+			current = current->right;
+		}
+	}
+
+	TNode *addition = malloc(sizeof(TNode));
+    if (!addition) {       
+        return -1;
+    }
+    addition->doc_id = doc_id;
+    addition->word_count = word_count;
+    addition->left = NULL;
+    addition->right = NULL;
+
+    if (name != NULL) {
+    	size_t len_name = strlen(name)+1;
+    	addition->name = calloc(len_name, sizeof(char));
+    	if (addition->name) {
+        	// if calloc was successful, copy the filename into the node
+        	strcpy( addition->name, name );
+    	} else {
+        	// if calloc failed, release any memory that was allocated and 
+        	// report an error by returning NULL
+        	free_TNode(addition);
+        	addition = NULL;
+    	}
+	}
+
+    if (author != NULL) {
+    	size_t len_author = strlen(author)+1;
+    	addition->author = calloc(len_author, sizeof(char));
+    	if (addition->author) {
+        	// if calloc was successful, copy the filename into the node
+        	strcpy( addition->author, author );
+    	} else {
+        	// if calloc failed, release any memory that was allocated and 
+        	// report an error by returning NULL
+        	free_TNode(addition);
+        	addition = NULL;
+    	}
+	}
+
+    if (parent == NULL) {
+    	// Tree was empty
+    	root = addition;
+    } else if (parent->doc_id >= doc_id) {
+    	parent->left = addition;
+    } else {
+    	parent->right = addition;
+    }
+
+#ifdef DEBUG
+    printf("Node Info:\n");
+    printf("  Key: %d\n", addition->doc_id);
+    printf("  Name: %s\n", addition->name);
+    printf("  Author: %s\n", addition->author);
+    printf("  Word Count: %d\n", addition->word_count);
+    printf("  Left Child: %s\n", addition->left ? "Exists" : "NULL");
+    printf("  Right Child: %s\n", addition->right ? "Exists" : "NULL");
+#endif
+    current_doc_id++;
+
+	return doc_id;
 }
 
 int
@@ -70,6 +183,16 @@ bstdb_get_word_count ( int doc_id ) {
 	// and return the word_count of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return -1
+	TNode *current = root;
+	while (current != NULL) {
+		if (current->doc_id > doc_id) {
+			current = current->left;
+		} else if (current->doc_id < doc_id) {
+			current = current->right;
+		} else {
+			return current->word_count;
+		}
+	}
 	return -1;
 }
 
@@ -79,6 +202,16 @@ bstdb_get_name ( int doc_id ) {
 	// and return the name of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return NULL or 0
+	TNode *current = root;
+	while (current != NULL) {
+		if (current->doc_id > doc_id) {
+			current = current->left;
+		} else if (current->doc_id < doc_id) {
+			current = current->right;
+		} else {
+			return current->name;
+		}
+	}
 	return 0;
 }
 
@@ -109,4 +242,6 @@ bstdb_quit ( void ) {
 	// This function will run once (and only once) when the program ends. Use
 	// it to free any memory you allocated in the course of operating the
 	// database.
+	free_TNode(root);
+	root = NULL;
 }
