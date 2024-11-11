@@ -33,6 +33,17 @@ countNodes(TNode *node) {
     return 1 + countNodes(node->left) + countNodes(node->right);
 }
 
+double
+getCapacity() {
+    int ret = 0;
+    for (int i = 0; i < MAX_DOCS; i++) {
+    	if (IDtable[i] == 1) {
+    		ret++;
+    	}
+    }
+    return ret;
+}
+
 // This function frees all TNode and strings inside recursively
 void
 free_TNode (TNode *node) {
@@ -304,6 +315,7 @@ bstdb_stat ( void ) {
     //
     //  + Can you prove that there are no accidental duplicate document IDs
     //    in the tree?
+    double capacity = (getCapacity() / MAX_DOCS) * 100;
     printf("STAT\n");
     printf("Avg nodes traversed per search  -> %lf\n",
         (double)bst_num_traverses/bst_num_searches);
@@ -316,6 +328,8 @@ bstdb_stat ( void ) {
     printf("Height on Left  -> %d\n", leftHeight);
     printf("Height on Right  -> %d\n", rightHeight);
     printf("Nodes in Tree  -> %d\n", countNodes(root));
+    printf("Tree Capacity  -> %.2f", capacity);
+    printf("%%\n");
 }
 
 void
