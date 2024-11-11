@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_DOCS 1000000
+#define MAX_DOCS 2000000
+
 #define LEFT_DIR 101
 #define RIGHT_DIR 102
 
@@ -55,10 +56,15 @@ TNode *root;
 
 int IDtable[MAX_DOCS] = { 0 };
 
-int bst_num_traverses, bst_num_searches, num_duplicates, leftHeight, rightHeight;
+int bst_num_traverses, bst_num_searches, num_duplicates, leftHeight, rightHeight, first, leftIDremaining, rightIDremaining;
 
-void getBalance() {
-	
+int
+countNodes(TNode *node) {
+    if (node == NULL) {
+        return 0;
+    }
+    // Count the current node plus nodes in left and right subtrees
+    return 1 + countNodes(node->left) + countNodes(node->right);
 }
 
 void
@@ -81,6 +87,9 @@ bstdb_init ( void ) {
 	// starts. Use it to allocate any memory you want to use or initialize 
 	// some globals if you need to. Function should return 1 if initialization
 	// was successful and 0 if something went wrong.
+	first = 1;
+	leftIDremaining = MAX_DOCS / 2;
+	rightIDremaining = MAX_DOCS / 2;
 	bst_num_traverses = 0;
 	bst_num_searches = 0;
 	num_duplicates = 0;
@@ -88,6 +97,39 @@ bstdb_init ( void ) {
 	rightHeight = 0;
 	root = NULL;
 	return 1;
+}
+
+/////////////////////////////////////
+// Smart DOC_ID Selector Algorithm //
+/////////////////////////////////////
+int
+smartSelectionAlgorithm () {
+	int midpoint = MAX_DOCS / 2;
+	if (first) {
+		first = 0;
+		IDtable[midpoint] = 1;
+		return midpoint;
+	}
+	int doc_id;
+    if (leftHeight > rightHeight && rightIDremaining > 0) {
+        rightIDremaining--;
+        do {
+        	doc_id = midpoint + rand() % midpoint;
+    	} while (IDtable[doc_id] == 1);
+    } else if (rightHeight > leftHeight && leftIDremaining > 0) {
+    	leftIDremaining--;
+    	do {
+        	doc_id = rand() % midpoint; 
+    	} while (IDtable[doc_id] == 1);
+    } else if (leftIDremaining == 0 || rightIDremaining == 0) {
+    	return -1;
+    } else {
+    	do {
+        	doc_id = rand() % MAX_DOCS; 
+    	} while (IDtable[doc_id] == 1);
+    }
+    IDtable[doc_id] = 1;
+    return doc_id;
 }
 
 int
@@ -111,11 +153,12 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	int depth = 0;
 	int sway = 0;
 
-	int doc_id = rand() % MAX_DOCS;
-	while (IDtable[doc_id] == 1) {
-		doc_id = rand() % MAX_DOCS;
+	int doc_id = smartSelectionAlgorithm();
+
+	// Smart Selector ran out of indexes
+	if (doc_id == -1) {
+		return -1;
 	}
-	IDtable[doc_id] = 1;
 
 	// Current and parent pointers
 	TNode *current = root;
@@ -189,6 +232,7 @@ bstdb_add ( char *name, int word_count, char *author ) {
     	parent->right = addition;
     }
 
+    // Update heights if they have changed
     if (sway == LEFT_DIR && depth > leftHeight) {
     	leftHeight = depth;
     } else if (sway == RIGHT_DIR && depth > rightHeight) {
@@ -273,6 +317,7 @@ bstdb_stat ( void ) {
     }
     printf("Height on Left  -> %d\n", leftHeight);
     printf("Height on Right  -> %d\n", rightHeight);
+    printf("Nodes in Tree  -> %d\n", countNodes(root));
 }
 
 void
