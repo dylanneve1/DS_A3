@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_DOCS 2000000
 
@@ -67,6 +68,7 @@ free_TNode (TNode *node) {
 
 int
 bstdb_init ( void ) {
+	srand(time(NULL));
 	// First not set
     first = 1;
     // Left and Right IDs (MAX / 2)
