@@ -106,15 +106,15 @@ midpointBalancedGenerationAlgorithm () {
     int doc_id;
     if (leftHeight > rightHeight && rightIDremaining > 0) { // Generate ID to the right
         do {
-            doc_id = midpoint + rand() % midpoint;
+            doc_id = (midpoint + 1) + (rand() % (midpoint - 1));
         } while (IDtable[doc_id] == 1);
     } else if (rightHeight > leftHeight && leftIDremaining > 0) { // Generate ID to the left
         do {
             doc_id = rand() % midpoint; 
         } while (IDtable[doc_id] == 1);
-    } else if (leftIDremaining == 0 || rightIDremaining == 0) { // IDs have run out
+    } else if (leftIDremaining == 0 && rightIDremaining == 0) { // IDs have run out
         return INVALID_BST_OP;
-    } else { // Weighting is equal, generate a random ID
+    } else { // Weighting is equal or ID unavaliable, tree balance will be sacrificed!, generate a random ID
         do {
             doc_id = rand() % MAX_DOCS; 
         } while (IDtable[doc_id] == 1);

@@ -5,7 +5,7 @@
 
 # Compiler
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -O3 -march=native -flto
 
 ######################
 #      TARGETS       #
