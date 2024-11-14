@@ -4,10 +4,12 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_DOCS 2000000
-
-#define LEFT_DIR 101
-#define RIGHT_DIR 102
+// MACROS
+#define IDL_LEFT_DIR         101
+#define IDL_RIGHT_DIR        102
+#define IDL_SWAY_INVALID     103
+#define INVALID_BST_OP        -1
+#define MAX_DOCS         2000000
 
 typedef struct TNode {
     int doc_id;
@@ -22,7 +24,7 @@ TNode *root;
 
 int IDtable[MAX_DOCS] = { 0 };
 
-int bst_num_traverses, bst_num_searches, num_duplicates, leftHeight, rightHeight, first, leftIDremaining, rightIDremaining;
+int bst_num_traverses, bst_num_searches, bst_num_duplicates, leftHeight, rightHeight, first, leftIDremaining, rightIDremaining;
 
 // This function counts all nodes in tree
 int
@@ -77,7 +79,7 @@ bstdb_init ( void ) {
     // Initialize metrics to zero
     bst_num_traverses = 0;
     bst_num_searches = 0;
-    num_duplicates = 0;
+    bst_num_duplicates = 0;
     leftHeight = 0;
     rightHeight = 0;
     // Initialize root node to NULL
@@ -113,7 +115,7 @@ midpointBalancedGenerationAlgorithm () {
             doc_id = rand() % midpoint; 
         } while (IDtable[doc_id] == 1);
     } else if (leftIDremaining == 0 || rightIDremaining == 0) { // IDs have run out
-        return -1;
+        return INVALID_BST_OP;
     } else { // Weighting is equal, generate a random ID
         do {
             doc_id = rand() % MAX_DOCS; 
@@ -144,14 +146,14 @@ bstdb_add ( char *name, int word_count, char *author ) {
 
 	// Initialize depth and sway
     int depth = 0;
-    int sway = 0;
+    int sway = IDL_SWAY_INVALID;
 
     // Calculate DOC_ID with ID generation algorithm
     int doc_id = midpointBalancedGenerationAlgorithm();
 
     // Smart Selector ran out of indexes
-    if (doc_id == -1) {
-        return -1;
+    if (doc_id == INVALID_BST_OP) {
+        return INVALID_BST_OP;
     }
 
     // Current and parent pointers
@@ -166,23 +168,23 @@ bstdb_add ( char *name, int word_count, char *author ) {
             current = current->left;
             // Increment the depth
             depth++;
-            if (sway == 0) { // If sway not set, leaning left from root
-                sway = LEFT_DIR;
+            if (sway == IDL_SWAY_INVALID) { // If sway not set, leaning left from root
+                sway = IDL_LEFT_DIR;
             }
         } else if (current->doc_id < doc_id) {
             current = current->right;
             // Increment the depth
             depth++;
-            if (sway == 0) { // If sway not set, leaning right from root
-                sway = RIGHT_DIR;
+            if (sway == IDL_SWAY_INVALID) { // If sway not set, leaning right from root
+                sway = IDL_RIGHT_DIR;
             }
         } else if (current->doc_id == doc_id) {
             // Duplicate found, not good!
             // This means ID is already taken
             // This should never happen
-            num_duplicates++;
+            bst_num_duplicates++;
             // Failed to insert
-            return -1;
+            return INVALID_BST_OP;
         }
     }
 
@@ -191,7 +193,7 @@ bstdb_add ( char *name, int word_count, char *author ) {
     TNode *addition = malloc(sizeof(TNode));
     if (!addition) {       
     	// Malloc failed!
-        return -1;
+        return INVALID_BST_OP;
     }
     // Populate fields
     addition->doc_id = doc_id;
@@ -213,7 +215,7 @@ bstdb_add ( char *name, int word_count, char *author ) {
             free_TNode(addition);
             addition = NULL;
             // Failed to insert
-            return -1;
+            return INVALID_BST_OP;
         }
     }
 
@@ -230,7 +232,7 @@ bstdb_add ( char *name, int word_count, char *author ) {
             free_TNode(addition);
             addition = NULL;
             // Failed to insert
-            return -1;
+            return INVALID_BST_OP;
         }
     }
 
@@ -272,7 +274,7 @@ bstdb_get_word_count ( int doc_id ) {
             return current->word_count;
         }
     }
-    return -1;
+    return INVALID_BST_OP;
 }
 
 char*
@@ -321,7 +323,7 @@ bstdb_stat ( void ) {
     printf("STAT\n");
     printf("Avg nodes traversed per search  -> %lf\n",
         (double)bst_num_traverses/bst_num_searches);
-    printf("Num duplicate doc_id detected  -> %d\n", num_duplicates);
+    printf("Num duplicate doc_id detected  -> %d\n", bst_num_duplicates);
     if (leftHeight == rightHeight) {
         printf("Balanced  -> TRUE \n");
     } else {
