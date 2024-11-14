@@ -75,7 +75,7 @@ bstdb_init ( void ) {
     first = 1;
     // Left and Right IDs (MAX / 2)
     leftIDremaining = MAX_DOCS / 2;
-    rightIDremaining = MAX_DOCS / 2;
+    rightIDremaining = (MAX_DOCS / 2) - 1;
     // Initialize metrics to zero
     bst_num_traverses = 0;
     bst_num_searches = 0;
@@ -105,12 +105,10 @@ midpointBalancedGenerationAlgorithm () {
     }
     int doc_id;
     if (leftHeight > rightHeight && rightIDremaining > 0) { // Generate ID to the right
-        rightIDremaining--;
         do {
             doc_id = midpoint + rand() % midpoint;
         } while (IDtable[doc_id] == 1);
     } else if (rightHeight > leftHeight && leftIDremaining > 0) { // Generate ID to the left
-        leftIDremaining--;
         do {
             doc_id = rand() % midpoint; 
         } while (IDtable[doc_id] == 1);
@@ -120,6 +118,11 @@ midpointBalancedGenerationAlgorithm () {
         do {
             doc_id = rand() % MAX_DOCS; 
         } while (IDtable[doc_id] == 1);
+    }
+    if (doc_id < midpoint) {
+    	leftIDremaining--;
+    } else if (doc_id > midpoint) {
+    	rightIDremaining--;
     }
     // Mark ID as taken and return calculated ID
     IDtable[doc_id] = 1;
@@ -246,9 +249,9 @@ bstdb_add ( char *name, int word_count, char *author ) {
     }
 
     // Update heights if they have changed
-    if (sway == LEFT_DIR && depth > leftHeight) {
+    if (sway == IDL_LEFT_DIR && depth > leftHeight) {
         leftHeight = depth;
-    } else if (sway == RIGHT_DIR && depth > rightHeight) {
+    } else if (sway == IDL_RIGHT_DIR && depth > rightHeight) {
         rightHeight = depth;
     }
 
